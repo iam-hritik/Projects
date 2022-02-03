@@ -1,0 +1,70 @@
+from dataclasses import replace
+import os
+from sched import scheduler
+from tkinter.filedialog import Open
+from venv import create
+import psutil
+import time
+from sys import*
+import schedule
+
+def ProcessDisplay(log_dir="Hritik"):
+    listprocess=[]
+
+    if not os.path.exists(log_dir):
+        try:
+            os.mkdir(log_dir)
+        except:
+            pass 
+
+    separator="-" * 80
+    log_path=os.path.join(log_dir,"LOG%s.txt"%(time.ctime()).replace(" ","_").replace(":","-"))
+    # log_path = os.path.join(log_dir,"Log%s.log"%(time.ctime()).replace(" ","-").replace(":","-"))
+    f=open(log_path,'w')
+    # f = open("file. txt", "w")
+    f.write(separator+"\n")
+    f.write("PROCESS LOGGER SCRIPT:"+time.ctime() +"\n") 
+    f.write(separator+"\n")      
+     
+
+    for Proc in psutil.process_iter():
+        try:
+            pinfo=Proc.as_dict(attrs=['pid','name','username'])
+            pinfo['vms']=Proc.memory_info().vms/(1024*1024)
+            listprocess.append(pinfo)
+        except(psutil.NoSuchProcess,psutil.AccessDenied,psutil.ZombieProcess):
+            pass
+
+    for element in listprocess:
+        f.write("%s\n" % element)        
+    # return listprocess
+
+def main():
+    print("------------Automation Sript--------------")
+    print("APPLICATION NAME:"+argv[0])
+    if(len(argv)==2):
+        if (argv[1] == "-h") or (argv[1] == "-H"):
+                print("Help : YOU NEED TO GIVE DIRECTORY NAME TO CREATE LOG FILE")
+                exit()
+
+        if (argv[1] == "-u") or (argv[1] == "-U"):
+                print("Usage : THIS SCRIPT IS USE TO DISPLAY RUNNING PROCESSES ON YOUR MACHINE")
+                exit() 
+    try:
+        schedule.every(int(argv[1])).minutes.do(ProcessDisplay)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+    except ValueError:
+        print("ERROR:Invalid datatype of input") 
+    except Exception as E: 
+        print("ERROR:Invalid Input",E)                      
+
+    # listprocess=ProcessDisplay()
+    # for elem in listprocess:
+    #     print(elem)
+
+
+if __name__=="__main__":
+    main()    
